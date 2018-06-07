@@ -5,6 +5,7 @@ from torch.autograd import Variable
 from Data_Handle.image_utils import standardize,distance_map_batch_v2
 import matplotlib.pyplot as plt
 import time
+import os
 
 def error_rate(predictions, labels):
     """
@@ -220,4 +221,41 @@ class Plot_patches():
         fig.canvas.draw()
         time.sleep(10)
         plt.close(fig)
+        
+class Store_learning(object):
+    """
     
+    
+    sfds
+    """
+    def __init__(self, global_pred_path):
+
+        self.prediction_path=global_pred_path+'STORE_LEARNING/'
+        if not os.path.exists(self.prediction_path):
+            os.makedirs(self.prediction_path)
+
+       
+        
+    def initialize(self,mode):
+        #STORE loss for ANALYSIS
+        
+        self.avg_loss_train=[]
+        self.file_train = open(self.prediction_path+'avg_loss_train.txt',mode) 
+        
+        self.file_verif = open(self.prediction_path+'loss_verif.txt',mode) 
+        #STORE ERROR RATE
+
+        self.error_rate_file_verif = open(self.prediction_path+'error_verif.txt',mode)
+        #STORE IOU_ACC for ANALYSIS
+
+        self.IOU_acc_file_verif = open(self.prediction_path+'iou_acc_verif.txt',mode)
+        #STORE f1_IOU for ANALYSIS
+
+        self.f1_IOU_file_verif = open(self.prediction_path+'f1_iou_verif.txt',mode) 
+
+        
+    def write_file(self,file,value):
+        
+        
+        file.write(str(value)+'\n')
+        file.flush()
