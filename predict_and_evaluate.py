@@ -112,7 +112,7 @@ class Plot_patches():
         congifured to be used in a notebook (draw for plot)
     """
     
-    def __init__(self,prediction_seg,groundtruth_seg,prediction_dist,groundtruth_dist):
+    def __init__(self,prediction_seg,groundtruth_seg=None,prediction_dist=None,groundtruth_dist=None):
         '''
         all numpy array and dense labels for gt and pred
         '''
@@ -180,6 +180,44 @@ class Plot_patches():
         time.sleep(10)
         plt.close(fig)
         
-        def plot_patches_only_pred(): 
-            print('nada')
+    def plot_patches_only_pred(self,batch_x,prediction_path,save_patches): 
+        pansharp=self.produce_pansharp(batch_x)
+        
+        if self.prediction_dist is None:
+            fig,axs=plt.subplots(2, len(pansharp),figsize=(3*len(pansharp),6))
+
+            logits=np.argmax(self.prediction_seg, 3)
+
+            for i in range(len(pansharp)):
+
+                axs[0,i].imshow(pansharp[i]) 
+                axs[1,i].imshow(logits[i])
+
+
+                if save_patches:
+                    plt.imsave(prediction_path+'_Panchro_'+str(i)+'.jpg',pansharp[i])
+                    plt.imsave(prediction_path+'_Predictions_'+str(i)+'.jpg',logits[i])
+        else:
+
+            fig,axs=plt.subplots(3, len(pansharp),figsize=(3*len(pansharp),9))
+
+
+            logits_seg=np.argmax(self.prediction_seg, 3)
+            logits_dist=np.argmax(self.prediction_dist, 3)
+
+            for i in range(len(pansharp)):
+
+                axs[0,i].imshow(pansharp[i])
+                axs[1,i].imshow(logits_seg[i])
+                axs[2,i].imshow(logits_dist[i],cmap="jet")
+
+
+                if save_patches:
+                    plt.imsave(prediction_path+'_Panchro_'+str(i)+'.jpg',pansharp[i])
+                    plt.imsave(prediction_path+'_Predictions_'+str(i)+'.jpg',logits_seg[i])
+                    plt.imsave(prediction_path+'_Predictions_dist_'+str(i)+'.jpg',logits_dist[i],cmap="jet")
+
+        fig.canvas.draw()
+        time.sleep(10)
+        plt.close(fig)
     
