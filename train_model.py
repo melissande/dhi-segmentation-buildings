@@ -125,6 +125,10 @@ class Trainer(object):
         self.lr = lr
         self.nb_classes=nb_classes
         self.loss_fn=loss_fn
+        
+        
+        
+            
     def _initialize(self, prediction_path,store_learning,iou_step,dist_net,threshold,bins):
         
         self.optimizer = optim.Adam(self.net.parameters(),lr=self.lr)
@@ -321,6 +325,7 @@ class Trainer(object):
             logging.info("Verification   IOU Precision = {:.4f}%, F1 IOU= {:.4f}%".format(iou_acc_v,f1_v))
             (self.store_learning).write_file((self.store_learning).IOU_acc_file_verif,iou_acc_v)
             (self.store_learning).write_file((self.store_learning).f1_IOU_file_verif,f1_v)
+    
             
 
 if __name__ == '__main__':
