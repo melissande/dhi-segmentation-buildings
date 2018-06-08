@@ -25,6 +25,9 @@ def vectorize_raster(geoJsonFileName,array2d,layerName="BuildingID",fieldName="B
     
     return
 def predict_score_batch(temporary_fold,batch_y,prediction):
+    '''
+        Spacenet IoU metrics: explained in https://github.com/SpaceNetChallenge/utilities
+    '''
     minPolygonSize=5
     
     tot_score_batch=0

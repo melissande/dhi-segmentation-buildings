@@ -29,10 +29,11 @@ class Predict():
         self.threshold=threshold
         self.bins=bins
         self.sample=sample
+
         
         
     
-    def forward_pass(self,net,display_patches=False,save_patches=False):
+    def forward_pass(self,net):
         
         ##Variables input and output transformed for cuda
         
@@ -56,7 +57,7 @@ class Predict():
             self.batch_y_dist=None
             probs_seg=self.predict(net,X)
             probs_dist=None
-            loss=self.criterion(Y,probs,self.loss_fn)
+            loss=self.criterion(Y,probs_seg,self.loss_fn)
 
     
         return loss,probs_dist,probs_seg
@@ -71,12 +72,14 @@ class Predict():
         return X
     
     def jaccard_approx(self,y_true,y_est):
-
+        '''
+            Loss advised by Vladimir on Spacenet Challenge: http://blog.kaggle.com/2017/05/09/dstl-satellite-imagery-competition-3rd-place-winners-interview-vladimir-sergey/
+        '''
         sigmo=nn.Sigmoid()
         y_est=sigmo(y_est)
 
-        jaccard_approx=1/2*(torch.sum(y[:,0]*y_est[:,0])/(torch.sum(y_true[:,0])+torch.sum(y_est[:,0])-torch.sum(y_true[:,0]*y_est[:,0]))
-                            +torch.sum(y[:,1]*y_est[:,1])/(torch.sum(y_true[:,1])+torch.sum(y_est[:,1])-torch.sum(y_true[:,1]*y_est[:,1])))
+        jaccard_approx=1/2*(torch.sum(y_true[:,0]*y_est[:,0])/(torch.sum(y_true[:,0])+torch.sum(y_est[:,0])-torch.sum(y_true[:,0]*y_est[:,0]))
+                            +torch.sum(y_true[:,1]*y_est[:,1])/(torch.sum(y_true[:,1])+torch.sum(y_est[:,1])-torch.sum(y_true[:,1]*y_est[:,1])))
 
 
         loss_func=-1/len(y_est)*(torch.sum(y_true[:,0]*torch.log(y_est[:,0]))+torch.sum(y_true[:,1]*torch.log(y_est[:,1])))

@@ -13,7 +13,7 @@ from scipy.ndimage.morphology import distance_transform_bf
 NAME_PANCHRO='panchro.tif'
 NAME_PANSHARP='pansharp.tif'
 NAME_MS='ms.tif'
-geojson_file='buildings_accra.geojson'
+geojson_file='buildings.geojson'
 
 '''
 This script gathers all the functions useful to open, read and write images in .png or .h5.

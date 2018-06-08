@@ -25,7 +25,7 @@ from Data_Handle.data_augmentation import *
 
 
 ###### PATH TO STORE MODEL ############
-GLOBAL_PATH='MODEL_TEST/'
+GLOBAL_PATH='MODEL_TEST_GHANA/'
 
 
 if not os.path.exists(GLOBAL_PATH):
@@ -59,10 +59,10 @@ DEFAULT_VALID=32  # Batch size for validation set.
                 #Knowing that around 1200 elements in ghana validation and 15000 in spacenet validation
 
 DISPLAY_STEP=100 #how often (in terms of iterations) is displayed measures during an epoch
-IOU_STEP=2 # how often is computed IOU measures over validations et
-MAX_VAL_SIZE=200 #None if full validation dataset wants to be considered. 
+IOU_STEP=15 # how often is computed IOU measures over validations et
+MAX_VAL_SIZE=None #None if full validation dataset wants to be considered. 
                 # the notebook should be used for debug and that's why small dataset size is used
-MAX_TRAIN_SIZE=1000 #None if full training dataset wants to be considered to train
+MAX_TRAIN_SIZE=None #None if full training dataset wants to be considered to train
                 # the notebook should be used for debug and that's why small dataset size is used
 
 ###############
@@ -116,6 +116,8 @@ class Trainer(object):
     :param net: the unet instance to train
     :param batch_size: size of training batch
     :param lr: learning rate
+    :nb_classes: always set to 2 ->background and building
+    :type of loss: 'cross-entropy' or 'jaccard_approx-approx'
     """
     def __init__(self, net, batch_size=32, lr=0.001,nb_classes=2,loss_fn=LOSS_FN):
         self.net = net
@@ -138,13 +140,19 @@ class Trainer(object):
         Lauches the training process
         
         :param data_provider_path: where the DATASET folder is
+        :param store_learning: to store the metrics during the training as .txt file
         :param save_path: path where to store checkpoints
         :param restore_path: path where is the model to restore is stored
         :param epochs: number of epochs
         :param dropout: dropout probability
-        :param display_step: number of steps till outputting stats
-        :param restore: Flag if previous model should be restored 
-        :param prediction_path: path where to save predictions on each epoch
+        :param validation_batch_size: batch size of the validation set
+        :param prediction_path: where to store output of training (patches, losses .txt file, models)
+        :param dist_net: distance module or not 
+        :param threshold: threshold of distance module
+        :param bins: number of bins for distance module
+        :iou_step: how often is computed Iou measures over the validation set
+        :reduce_lr_steps: epoch at which the learning rate is halved
+        :data_aug: 'yes' or 'no' if the training set is augmented
         """
         
         ##SET UP PATHS FOR TRAINING ##
@@ -166,11 +174,9 @@ class Trainer(object):
         if not os.path.exists(TMP_IOU):
                     os.makedirs(TMP_IOU)
         
-        lr_train=[] 
+ 
         loss_train=[]
-        draw_learning=Draw_learning()
-       
-        
+
         if epochs == 0:
             print('Epoch set 0, model won\'t be trained')
             raise 
@@ -229,7 +235,7 @@ class Trainer(object):
                 
                 total_loss+=loss.data[0]
                 loss_train.append(loss.data[0])
-                lr_train.append(self.lr)
+
                 
                 counter+=1
                 
@@ -243,13 +249,13 @@ class Trainer(object):
             (self.store_learning).write_file((self.store_learning).file_train,avg_loss_train_value)
             logging.info(" Training {:}, Minibatch Loss= {:.4f}".format("epoch_%s"%epoch,avg_loss_train_value))
             self.info_validation(val_loader,epoch,RBD,"epoch_%s"%epoch,TMP_IOU)
-            save_path_final=torch.save(self.net.state_dict(),save_path + 'CP{}.pth'.format(epoch))
+            torch.save(self.net.state_dict(),save_path + 'CP{}.pth'.format(epoch))
             print('Checkpoint {} saved !'.format(epoch))
     
         self.info_validation(val_loader,-2,RBD,'_last_',TMP_IOU)
 #         time.sleep(4)
 #         plt.close(fig)
-        return save_path_final
+        return save_path + 'CP{}.pth'.format(epoch)
         
 
     def output_training_stats(self, step, loss,batch_y,probs_seg):
@@ -290,16 +296,11 @@ class Trainer(object):
             groundtruth_seg_v=np.asarray(predict_net.batch_y)
             prediction_dist_v=probs_dist.data.cpu().numpy()
             groundtruth_dist=np.asarray(predict_net.batch_y_dist)
-            plot_patches=Plot_patches(prediction_seg_v,groundtruth_seg_v,prediction_dist_v,groundtruth_dist)
             
             loss_v+=loss.data[0]
             error_rate_v+=error_rate(prediction_seg_v,groundtruth_seg_v)
             
-        
-            if i_batch==RBD:
-                batch_x=np.asarray(predict_net.batch_x)
-                plot_patches.plot_patches_with_gt(batch_x,name,self.prediction_path,save_patches)
-                
+     
             if (save_IOU_metrics and (epoch+1)%self.IOU_STEP==0):
                 iou_acc,f1,_=predict_score_batch(TMP_IOU,np.argmax(groundtruth_seg_v,3),np.argmax(prediction_seg_v,3))
                 iou_acc_v+=iou_acc
@@ -324,6 +325,7 @@ class Trainer(object):
 
 if __name__ == '__main__':
     
+#     python train_model.py ../2_DATA_GHANA/DATASET/128_x_128_8_pansh/ MODEL_TEST_GHANA/ RESUNET_test_ '' --epochs=6 --iou_step=2
     
     root_folder=sys.argv[1]
      ##########
@@ -398,7 +400,8 @@ if __name__ == '__main__':
             raise ValueError('Unknown argument %s' % str(arg))
     
     from RUBV3D2 import UNet 
-model=UNet(INPUT_CHANNELS,NB_CLASSES,depth =DEFAULT_LAYERS,n_features_zero =DEFAULT_FEATURES_ROOT,width_kernel=DEFAULT_FILTER_WIDTH,dropout=DROPOUT,distance_net=DISTANCE_NET_UNET,bins=BINS,batch_norm=DEFAULT_BN)
+    
+    model=UNet(INPUT_CHANNELS,NB_CLASSES,depth =DEFAULT_LAYERS,n_features_zero =DEFAULT_FEATURES_ROOT,width_kernel=DEFAULT_FILTER_WIDTH,dropout=DROPOUT,distance_net=DISTANCE_NET_UNET,bins=BINS,batch_norm=DEFAULT_BN)
     
     model.cuda()
     

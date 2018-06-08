@@ -16,7 +16,7 @@ if __name__ == '__main__':
         
     
     path_patches=sys.argv[1]
-    #path_patches='../2_DATA_GHANA/RAW_PATCHES/120_x_120/'
+    #path_patches='../2_DATA_GHANA/RAW_PATCHES/128_x_128/'
     Path_dataset=sys.argv[2]
     #path_dataset='../2_DATA_GHANA/DATASET/'
     if not os.path.exists(Path_dataset):
@@ -90,27 +90,27 @@ if __name__ == '__main__':
     
     
     path_dataset_all=[]
-    path_dataset=Path_dataset+'120_x_120_8_pansh/'
+    path_dataset=Path_dataset+'128_x_128_8_pansh/'
     if not os.path.exists(path_dataset):
             os.makedirs(path_dataset)
     index=np.arange(9)
     path_dataset_all.append([path_dataset,index])
-    path_dataset=Path_dataset+'120_x_120_4_pansh/'
-    if not os.path.exists(path_dataset):
-            os.makedirs(path_dataset)
-    index=[0,1,2,4,6]
-    path_dataset_all.append([path_dataset,index])
-    path_dataset=Path_dataset+'120_x_120_8_ms/'
-    if not os.path.exists(path_dataset):
-            os.makedirs(path_dataset)
-    index=[0,9,10,11,12,13,14,15,16]
-    path_dataset_all.append([path_dataset,index])
+#     path_dataset=Path_dataset+'120_x_120_4_pansh/'
+#     if not os.path.exists(path_dataset):
+#             os.makedirs(path_dataset)
+#     index=[0,1,2,4,6]
+#     path_dataset_all.append([path_dataset,index])
+#     path_dataset=Path_dataset+'120_x_120_8_ms/'
+#     if not os.path.exists(path_dataset):
+#             os.makedirs(path_dataset)
+#     index=[0,9,10,11,12,13,14,15,16]
+#     path_dataset_all.append([path_dataset,index])
             
-    path_dataset=Path_dataset+'120_x_120_8_pansh_8_ms/'
-    if not os.path.exists(path_dataset):
-            os.makedirs(path_dataset)
-    index=np.arange(17)
-    path_dataset_all.append([path_dataset,index])
+#     path_dataset=Path_dataset+'120_x_120_8_pansh_8_ms/'
+#     if not os.path.exists(path_dataset):
+#             os.makedirs(path_dataset)
+#     index=np.arange(17)
+#     path_dataset_all.append([path_dataset,index])
            
     #     #Save the dataset
     for path in path_dataset_all:

@@ -133,3 +133,26 @@ $ aws s3api get-object --bucket spacenet-dataset \
     --request-payer requester /scratch/SPACENET_DATA/BUILDING_DATASET/AOI_5_Khartoum/AOI_5_Khartoum_Test_public.tar.gz
 ```
 
+## Best Model 
+
+After some months of master thesis, several models have been used and compared and this repository contains the best model. This model is a Res-Unet (https://arxiv.org/abs/1505.04597)  with batch normalization and dropout layers. It has been combined to a distance module presented in https://arxiv.org/abs/1709.05932. Data augmentation has been performed on the training set. The network has first been trained on the Spacenet dataset (see model in 'MODELS/RUBV3D2_final_model_spacenet.pth') and then transfer learning has been performed on ghana dataset ('MODELS/RUBV3D2_final_model_ghana.pth'). The metric the most important is the not the pixel wise error but the F1 score of the Spacenet Challenge described in https://github.com/SpaceNetChallenge/utilities and that can be found in IOU_computations.py.
+
+I am currently trying to finalize domain space adapatation and the use of another loss more adpated to pixel wise segmentation (http://blog.kaggle.com/2017/05/09/dstl-satellite-imagery-competition-3rd-place-winners-interview-vladimir-sergey/). I also would like to run my model on the official test set of Spacenet challenge using their code of evaluation and upload on their platform my results.
+
+Model is in RUBV3D2.py
+
+To run the training, use, on a CUDA gpu devices:
+```sh
+$python train_model.py 'path_folder_to_dataset' 'path_folder_to_store_model' 'name_model' 'path_file_to_model_to_restore' --epochs=10 --iou_step=15
+```
+
+Other parameters can be set and are well explained in the script train_model.py or in the notebook train_model.ipynb which is very playful and it is good to use this notebook to get familiar to the training process before launching the script train_model.py at higher scale.
+
+The notebook real_time_loss_tracker.ipynb allows to track the metrics on the validation and training set during a training experience, which can take a very long time.
+
+Tipycally, training on data set of Ghana, takes up to a couple of hours rather than for the Spacenet dataset, it is about a couple of days.
+
+The notebook predict.ipynb allows to predict any patch from the test set.
+
+The notebook evaluation_test_set.py.ipynb allows to compute metrics on the whole test set to be able to compare models.
+
