@@ -43,7 +43,7 @@ NB_CLASSES=2 #Building and Background. Only works for NB_CLASSES=2 anyway, other
 SIZE_PATCH=128# patches of size 128x128. Needs to be equal to the size of the patches of the dataset.
 ############## 
 MODEL_PATH_SAVE=GLOBAL_PATH+'RESUNET_test_'
-MODEL_PATH_RESTORE='' #Path of Model to restore ex: 'MODELS/RUBV3D2_final_model_ghana.pth'
+MODEL_PATH_RESTORE='' #Path of Model to restore ex: 'TRAINED_MODELS/RUBV3D2_final_model_ghana.pth'
 TEST_SAVE=GLOBAL_PATH+'TEST_SAVE/' #to store some patches initial and final epoch of validation set + models + performance curves
 if not os.path.exists(TEST_SAVE):
             os.makedirs(TEST_SAVE)
