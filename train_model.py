@@ -60,10 +60,6 @@ DEFAULT_VALID=32  # Batch size for validation set.
 
 DISPLAY_STEP=100 #how often (in terms of iterations) is displayed measures during an epoch
 IOU_STEP=15 # how often is computed IOU measures over validations et
-MAX_VAL_SIZE=None #None if full validation dataset wants to be considered. 
-                # the notebook should be used for debug and that's why small dataset size is used
-MAX_TRAIN_SIZE=None #None if full training dataset wants to be considered to train
-                # the notebook should be used for debug and that's why small dataset size is used
 
 ###############
 DEFAULT_LAYERS=3 #number of layers of the UNET (not considering bottom layer) = number of downsmapling stages
@@ -207,14 +203,14 @@ class Trainer(object):
             
         ###Validation loader
 
-        val_generator=Dataset_sat.from_root_folder(PATH_VALIDATION,self.nb_classes,max_data_size=MAX_VAL_SIZE)
+        val_generator=Dataset_sat.from_root_folder(PATH_VALIDATION,self.nb_classes)
         val_loader = DataLoader(val_generator, batch_size=validation_batch_size,shuffle=False, num_workers=1)
         RBD=randint(0,int(val_loader.__len__())-1)
         self.info_validation(val_loader,-1,RBD,"_init",TMP_IOU)
 
         ###Training loader
 
-        train_generator=Dataset_sat.from_root_folder(PATH_TRAINING,self.nb_classes,max_data_size=MAX_TRAIN_SIZE,transform=data_aug)#max_data_size=4958 
+        train_generator=Dataset_sat.from_root_folder(PATH_TRAINING,self.nb_classes,transform=data_aug)#max_data_size=4958 
         
         
         logging.info("Start optimization")
@@ -232,10 +228,11 @@ class Trainer(object):
             error_tot=0   
             train_loader = DataLoader(train_generator, batch_size=self.batch_size,shuffle=True, num_workers=1)
             for i_batch,sample_batch in enumerate(train_loader):
-                predict_net=Predict(sample_batch,self.dist_net,self.loss_fn,self.threshold,self.bins)
-                loss,_,probs_seg=predict_net.forward_pass(self.net)
-                loss.backward()
-                self.optimizer.step()
+                self.optimizer.zero_grad()
+                predict_net=Train_or_Predict(sample_batch,self.dist_net,self.loss_fn,self.threshold,self.bins,self.net)
+                loss,_,probs_seg=predict_net.forward_pass()
+ 
+                loss,self.optimizer,self.net=predict_net.backward_prog(loss,self.optimizer)
                 
                 total_loss+=loss.data[0]
                 loss_train.append(loss.data[0])
@@ -293,8 +290,8 @@ class Trainer(object):
         
        
         for i_batch,sample in enumerate(val_loader):
-            predict_net=Predict(sample,self.dist_net,self.loss_fn,self.threshold,self.bins)
-            loss,probs_dist,probs_seg=predict_net.forward_pass(self.net)
+            predict_net=Train_or_Predict(sample,self.dist_net,self.loss_fn,self.threshold,self.bins,self.net)
+            loss,probs_dist,probs_seg=predict_net.forward_pass()
              
             prediction_seg_v=probs_seg.data.cpu().numpy()
             groundtruth_seg_v=np.asarray(predict_net.batch_y)

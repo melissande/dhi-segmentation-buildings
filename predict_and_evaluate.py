@@ -18,9 +18,9 @@ def error_rate(predictions, labels):
         (predictions.shape[0]*predictions.shape[1]*predictions.shape[2]))
 
 
-class Predict():
+class Train_or_Predict():
     
-    def __init__(self,sample,dist_net,loss_fn,threshold,bins):
+    def __init__(self,sample,dist_net,loss_fn,threshold,bins,net):
         
         
 
@@ -29,13 +29,14 @@ class Predict():
         self.threshold=threshold
         self.bins=bins
         self.sample=sample
+        self.net=net
 
         
         
     
-    def forward_pass(self,net):
+    def forward_pass(self):
         
-        ##Variables input and output transformed for cuda
+        ##Variables output transformed for cuda
         
         X=self.initialize_input()
         self.batch_y=self.sample['groundtruth']
@@ -47,7 +48,7 @@ class Predict():
             self.batch_y_dist=distance_map_batch_v2(self.batch_y,self.threshold,self.bins)
             Y_dist = Variable(self.batch_y_dist.float())
             Y_dist=Y_dist.cuda()
-            probs_dist,probs_seg=self.predict(net,X)
+            probs_dist,probs_seg=self.predict(X)
             loss_seg=self.criterion(Y,probs_seg,self.loss_fn)
             loss_dist=self.criterion(Y_dist,probs_dist,'cross-entropy')
             loss=loss_seg+loss_dist
@@ -55,7 +56,7 @@ class Predict():
             
         else:
             self.batch_y_dist=None
-            probs_seg=self.predict(net,X)
+            probs_seg=self.predict(X)
             probs_dist=None
             loss=self.criterion(Y,probs_seg,self.loss_fn)
 
@@ -64,7 +65,8 @@ class Predict():
     
 
     def initialize_input(self):
-        
+         ##Variables input transformed for cuda
+            
         self.batch_x=standardize(self.sample['input'])
         X = Variable(self.batch_x.float())
         X=X.permute(0,3,1,2).cuda()  #for the model to fwd/back in pytorch always batch size x channels x height x width
@@ -89,7 +91,9 @@ class Predict():
         return loss
 
     def criterion(self,y_true,y_est,loss_fn):
-
+        '''
+        Loss used --> cross entropy or jaccard approx
+        '''
         y_true = y_true.contiguous().view(-1,y_true.size()[-1])
         y_est = y_est.contiguous().view(-1,y_true.size()[-1])
         y_true_flat = y_true.max(-1)[1]
@@ -101,15 +105,22 @@ class Predict():
         return loss
 
 
-    def predict(self,net,X):
-
+    def predict(self,X):
+        '''
+            Predict with the model, X has to be a CUDA Variable
+        '''
         if self.dist_net=='v2':
-            logits_dist,logits_seg=net(X)
+            logits_dist,logits_seg=self.net(X)
             return logits_dist.permute(0,2,3,1),logits_seg.permute(0,2,3,1)  
         else:
-            logits=net(X)
+            logits=self.net(X)
             return logits.permute(0,2,3,1)
         
+    def backward_prog(self,loss,optimizer):
+        loss.backward()
+        optimizer.step()
+        
+        return loss,optimizer,self.net
         
 class Plot_patches():
     """
@@ -118,7 +129,7 @@ class Plot_patches():
     
     def __init__(self,prediction_seg,groundtruth_seg=None,prediction_dist=None,groundtruth_dist=None):
         '''
-        all numpy array and dense labels for gt and pred
+        all parameters ares numpy array and dense labels for groundtruth and predictions
         '''
         
         
@@ -227,9 +238,8 @@ class Plot_patches():
         
 class Store_learning(object):
     """
-    
-    
-    sfds
+    Text files creations and update to store learning tracking: avg loss train at each epoch, verificaiton loss at each epoch,
+    error rate verification set at each epoch,Spacenet IoU accuracy every certain steps of epoch, Spacenet F1 score every certain steps of epoch 
     """
     def __init__(self, global_pred_path):
 

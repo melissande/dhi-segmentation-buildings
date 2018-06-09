@@ -163,7 +163,9 @@ class UNet(nn.Module):
             self.outc2= outconv(n_features, bins)
         
     def forward(self, x):
- 
+       
+
+        
         x = self.inc(x)
         bridges = []
         for d in self.downs:
@@ -184,3 +186,4 @@ class UNet(nn.Module):
   
             x = self.outc(x)
             return x
+
