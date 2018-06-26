@@ -30,9 +30,11 @@ class Train_or_Predict():
         self.bins=bins
         self.sample=sample
         self.net=net
-
+        self.feature_maps=None
+    def get_feature_maps(self):
         
-        
+        return self.feature_maps
+       
     
     def forward_pass(self):
         
@@ -110,10 +112,10 @@ class Train_or_Predict():
             Predict with the model, X has to be a CUDA Variable
         '''
         if self.dist_net=='v2':
-            logits_dist,logits_seg=self.net(X)
+            logits_dist,logits_seg,self.feature_maps=self.net(X)
             return logits_dist.permute(0,2,3,1),logits_seg.permute(0,2,3,1)  
         else:
-            logits=self.net(X)
+            logits,self.feature_maps=self.net(X)
             return logits.permute(0,2,3,1)
         
     def backward_prog(self,loss,optimizer):
@@ -158,8 +160,11 @@ class Plot_patches():
             for i in range(len(pansharp)):
 
                 axs[0,i].imshow(pansharp[i])
+                axs[0,i].axis('off')
                 axs[1,i].imshow(labels[i]) 
+                axs[1,i].axis('off')
                 axs[2,i].imshow(logits[i])
+                axs[2,i].axis('off')
 
 
                 if save_patches:
@@ -178,10 +183,15 @@ class Plot_patches():
             for i in range(len(pansharp)):
 
                 axs[0,i].imshow(pansharp[i])
-                axs[1,i].imshow(labels_seg[i]) 
+                axs[0,i].axis('off')
+                axs[1,i].imshow(labels_seg[i])
+                axs[1,i].axis('off')
                 axs[2,i].imshow(logits_seg[i])
+                axs[2,i].axis('off')
                 axs[3,i].imshow(labels_dist[i],cmap="jet")
+                axs[3,i].axis('off')
                 axs[4,i].imshow(logits_dist[i],cmap="jet")
+                axs[4,i].axis('off')
 
 
                 if save_patches:
@@ -268,7 +278,7 @@ class Store_learning(object):
 
         
     def write_file(self,file,value):
-        
+
         
         file.write(str(value)+'\n')
         file.flush()

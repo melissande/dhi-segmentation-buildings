@@ -3,3 +3,7 @@ MODEL*/
 .ipynb_checkpoints
 __pycache__
 TEST*/
+*MODEL*/
+*LOSSES*/
+*/__pycache__
+*TEST*/

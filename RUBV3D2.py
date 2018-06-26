@@ -165,25 +165,25 @@ class UNet(nn.Module):
     def forward(self, x):
        
 
-        
+  
         x = self.inc(x)
         bridges = []
         for d in self.downs:
 
             bridges += [x]
             x = d(x)
- 
+        x_mem=[]
         for k,u in enumerate(self.ups):
-
+            x_mem.append(x)
             x = u(x,bridges[len(bridges)-1-k])
         if self.distance_net:
-            
+            x_mem.append(x)
             x_seg=self.outc(x)
             x_dist=torch.cat((x, x_seg), 1)
             x_dist = self.outc2(x)
-            return x_dist,x_seg
+            return x_dist,x_seg,x_mem
         else:
-  
+            x_mem.append(x)
             x = self.outc(x)
-            return x
+            return x,x_mem
 
