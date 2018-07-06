@@ -181,6 +181,7 @@ class UNet(nn.Module):
             x_seg=self.outc(x)
             x_dist=torch.cat((x, x_seg), 1)
             x_dist = self.outc2(x)
+            x_mem.append(x_dist)
             return x_dist,x_seg,x_mem
         else:
             x_mem.append(x)

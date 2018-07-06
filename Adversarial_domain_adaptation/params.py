@@ -42,20 +42,20 @@ data_aug=None #transforms.Compose([Transform(),ToTensor()])
 # params for setting up discriminative model
 model_root = "../TRAINED_MODELS/"
 d_size_in=16 #size patch bottom layer Unet
-d_len_feature_maps=4 #number of stages Unet
-d_input_dims=240 #size concat number filters all layers expansion path Unet
+d_len_feature_maps=5 #number of stages Unet + dist modeul
+d_input_dims=bins+240 #size concat number filters all layers expansion path Unet
 d_output_dims = 2
 d_model_restore = ""
 
 # params for training network
-num_epochs=150#6
-display_step=100#10
+num_epochs=2000#6
+display_step=20#10
 iou_step=5#2
-train_dis_step = 5
+train_dis_step=1
 
 #saving_paths
 
-global_path='MODEL_ADDA/'
+global_path='MODEL_ADDA_2/'
 if not os.path.exists(global_path):
             os.makedirs(global_path)
 
@@ -83,5 +83,7 @@ if not os.path.exists(tmp_iou):
 loss_fn='cross-entropy'
 
 # params for optimizing models
-d_learning_rate = 1e-5
-c_learning_rate = 1e-3
+d_learning_rate = 1e-4
+d_lr_reduc=[10,50,100,1000]
+c_learning_rate = 1e-4
+c_lr_reduc=[10,50,100,1000]

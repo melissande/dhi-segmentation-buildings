@@ -11,12 +11,13 @@ class Discriminator(nn.Module):
         """Init discriminator."""
         super(Discriminator, self).__init__()
         
-        strides=[2**(k+1) for k in range(len_feature_map-1)]
-        padding=[2**(k) for k in range(len_feature_map-1)]
-        
+        strides=[2**(k+1) for k in range(len_feature_map-2)]
+        padding=[2**(k) for k in range(len_feature_map-2)]
+
         self.avg_pool=nn.ModuleList()
         for i in range(len(strides)):
             self.avg_pool+=[nn.AvgPool2d(strides[i]+1,stride=strides[i],padding=padding[i])]
+        self.avg_pool+=[nn.AvgPool2d(strides[len(strides)-1]+1,stride=strides[len(strides)-1],padding=padding[len(strides)-1])]
         self.size_in=size_in
         self.input_filters=128
         self.layer_1=nn.Sequential(nn.Conv2d(input_dims, self.input_filters, kernel_size=1,stride=1),nn.ReLU())

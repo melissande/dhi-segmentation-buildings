@@ -82,6 +82,8 @@ class Trainer_adda():
         RBD=randint(0,int(val_len_data_loader-1))
 
         self.info_validation(val_data_zip,val_len_data_loader,-1,RBD,"_init")
+#         c_learning_rate=params.c_learning_rate
+#         d_learning_rate=params.d_learning_rate
         for epoch in range(params.num_epochs):
 
             # zip source and target data pair
@@ -92,6 +94,14 @@ class Trainer_adda():
 
 
             for step, (sample_src, sample_tgt) in tr_data_zip:
+#                 if step in params.c_lr_reduc:
+#                     c_learning_rate=c_learning_rate/2 
+#                     self.optimizer_tgt = optim.Adam(tgt_encoder.parameters(),
+#                            lr=c_learning_rate)
+#                 if step in params.d_lr_reduc:
+#                     d_learning_rate=d_learning_rate/2
+#                     self.optimizer_discri = optim.Adam(discri_net.parameters(),
+#                            lr=d_learning_rate)        
                 if (step % params.train_dis_step == 0):
 
                     ###########################
